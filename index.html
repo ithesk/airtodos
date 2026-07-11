@@ -5,73 +5,177 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Calidad del Aire</title>
 <style>
+  :root {
+    --page:#0a0a0c; --ink:#ffffff; --ink-2:#b9b9c3; --ink-mute:#6f6f7a;
+    --card-ink:#141417; --card-ink-2:rgba(20,20,23,.62);
+    --track:#1e1e24;
+    --amarillo:#f2cf63; --lila:#c9aef2; --verde:#5fc79b; --azul:#6faaf5;
+    --naranja:#f0955c; --rojo:#ef6a6a;
+  }
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
   body {
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    background:#0b0d12; color:#fff; min-height:100vh;
+    background:var(--page); color:var(--ink); min-height:100vh;
     display:flex; flex-direction:column; align-items:center;
-    padding:24px 16px calc(24px + env(safe-area-inset-bottom));
+    padding:20px 20px calc(28px + env(safe-area-inset-bottom));
   }
-  .wrap { width:100%; max-width:440px; }
-  .hero {
-    border-radius:28px; padding:40px 24px; text-align:center;
-    background:#1a2030; transition:background .8s ease; margin-bottom:16px;
-    box-shadow:0 20px 60px rgba(0,0,0,.45);
+  .wrap { width:100%; max-width:430px; }
+
+  header { display:flex; align-items:center; justify-content:space-between; padding:6px 2px 2px; }
+  .logo { display:grid; grid-template-columns:6px 6px; gap:4px; }
+  .logo i { width:6px; height:6px; border-radius:50%; background:var(--ink-2); }
+  .logo i:nth-child(1) { background:var(--ink); }
+  .hname { font-size:15px; color:var(--ink-2); }
+  .hname b { color:var(--ink); font-weight:700; }
+  .havatar {
+    width:34px; height:34px; border-radius:50%; background:#1c1c22;
+    display:flex; align-items:center; justify-content:center; font-size:16px;
+    border:1px solid rgba(255,255,255,.08);
   }
-  .estado { font-size:46px; font-weight:800; letter-spacing:-1.5px; }
-  .sub { font-size:15px; opacity:.9; margin-top:8px; font-weight:500; }
-  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .card {
-    background:#151922; border-radius:20px; padding:20px;
-    border:1px solid rgba(255,255,255,.06);
+
+  h1 {
+    text-align:center; font-size:25px; font-weight:300; line-height:1.3;
+    margin-top:26px; letter-spacing:.2px;
   }
-  .label { font-size:12px; opacity:.55; font-weight:700; text-transform:uppercase; letter-spacing:.6px; }
-  .val { font-size:34px; font-weight:800; margin-top:8px; letter-spacing:-1px; }
-  .unit { font-size:16px; font-weight:600; opacity:.5; margin-left:3px; }
-  .foot { text-align:center; margin-top:22px; font-size:13px; opacity:.4; }
+
+  .gauge { position:relative; margin:6px auto 0; width:min(310px,100%); }
+  .gauge svg { width:100%; height:auto; display:block; }
+  .g-progress { transition:stroke-dashoffset .9s cubic-bezier(.4,0,.2,1); }
+  .g-knob { transition:cx .9s cubic-bezier(.4,0,.2,1), cy .9s cubic-bezier(.4,0,.2,1); }
+  .g-center {
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center; padding-top:14px;
+  }
+  .estado { font-size:46px; font-weight:800; letter-spacing:-1.5px; color:var(--verde); transition:color .6s ease; }
+  .lectura { margin-top:10px; font-size:19px; font-weight:700; }
+  .lectura .u { font-size:13px; font-weight:600; color:var(--ink-mute); margin-left:4px; }
+  .sub { text-align:center; font-size:14px; color:var(--ink-2); margin-top:2px; min-height:20px; }
+
+  h2 { text-align:center; font-size:21px; font-weight:300; margin:34px 0 16px; }
+
+  .rows { display:flex; flex-direction:column; gap:12px; }
+  .row {
+    border-radius:22px; padding:18px 22px;
+    display:flex; align-items:center; justify-content:space-between;
+    color:var(--card-ink);
+  }
+  .row.amarillo { background:var(--amarillo); }
+  .row.lila     { background:var(--lila); }
+  .row.verde    { background:var(--verde); }
+  .row.azul     { background:var(--azul); }
+  .r-label { font-size:16px; font-weight:800; letter-spacing:.2px; }
+  .r-sub { font-size:12.5px; font-weight:500; color:var(--card-ink-2); margin-top:3px; }
+  .r-val { font-size:34px; font-weight:800; letter-spacing:-1px; white-space:nowrap; }
+  .r-val .u { font-size:15px; font-weight:700; opacity:.55; margin-left:2px; letter-spacing:0; }
+
+  .foot { text-align:center; margin-top:26px; font-size:13px; color:var(--ink-mute); }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="hero" id="hero">
-    <div class="estado" id="estado">Cargando…</div>
-    <div class="sub" id="sub">Conectando con el sensor</div>
+  <header>
+    <div class="logo"><i></i><i></i><i></i><i></i></div>
+    <div class="hname">Calidad del <b>Aire</b> 🍃</div>
+    <div class="havatar">🏠</div>
+  </header>
+
+  <h1>Estado del aire<br>en este momento</h1>
+
+  <div class="gauge">
+    <svg viewBox="0 0 300 240" aria-hidden="true">
+      <defs>
+        <linearGradient id="arcGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"  stop-color="#f2cf63"/>
+          <stop offset="35%" stop-color="#5fc79b"/>
+          <stop offset="70%" stop-color="#6faaf5"/>
+          <stop offset="100%" stop-color="#c9aef2"/>
+        </linearGradient>
+      </defs>
+      <path d="M 75.75 204.25 A 105 105 0 1 1 224.25 204.25"
+            fill="none" stroke="var(--track)" stroke-width="10" stroke-linecap="round"/>
+      <path id="gprog" class="g-progress" d="M 75.75 204.25 A 105 105 0 1 1 224.25 204.25"
+            fill="none" stroke="url(#arcGrad)" stroke-width="10" stroke-linecap="round"
+            pathLength="100" stroke-dasharray="100 100" stroke-dashoffset="100"/>
+      <circle id="gknob" class="g-knob" cx="75.75" cy="204.25" r="9" fill="#fff" stroke="var(--page)" stroke-width="4"/>
+    </svg>
+    <div class="g-center">
+      <div class="estado" id="estado">Cargando…</div>
+      <div class="lectura"><span id="co2">–</span><span class="u">ppm CO₂</span></div>
+    </div>
   </div>
-  <div class="grid">
-    <div class="card"><div class="label">CO₂</div><div class="val"><span id="co2">–</span><span class="unit">ppm</span></div></div>
-    <div class="card"><div class="label">VOC</div><div class="val"><span id="voc">–</span></div></div>
-    <div class="card"><div class="label">Temperatura</div><div class="val"><span id="temp">–</span><span class="unit">°C</span></div></div>
-    <div class="card"><div class="label">Humedad</div><div class="val"><span id="hum">–</span><span class="unit">%</span></div></div>
+  <div class="sub" id="sub">Conectando con el sensor</div>
+
+  <h2>Lecturas del sensor</h2>
+
+  <div class="rows">
+    <div class="row amarillo">
+      <div><div class="r-label">CO₂</div><div class="r-sub">Dióxido de carbono</div></div>
+      <div class="r-val"><span id="co2b">–</span><span class="u">ppm</span></div>
+    </div>
+    <div class="row lila">
+      <div><div class="r-label">VOC</div><div class="r-sub">Compuestos volátiles</div></div>
+      <div class="r-val"><span id="voc">–</span></div>
+    </div>
+    <div class="row verde">
+      <div><div class="r-label">Temperatura</div><div class="r-sub">Ambiente interior</div></div>
+      <div class="r-val"><span id="temp">–</span><span class="u">°C</span></div>
+    </div>
+    <div class="row azul">
+      <div><div class="r-label">Humedad</div><div class="r-sub">Relativa del aire</div></div>
+      <div class="r-val"><span id="hum">–</span><span class="u">%</span></div>
+    </div>
   </div>
+
   <div class="foot" id="foot">—</div>
 </div>
+
 <script>
-const COLORS = {
-  0:{bg:"linear-gradient(160deg,#0f7a3d,#0a5c2e)",txt:"Bueno",   sub:"El aire está limpio y bien ventilado"},
-  1:{bg:"linear-gradient(160deg,#b58900,#8a6800)",txt:"Moderado",sub:"Aceptable, conviene ventilar pronto"},
-  2:{bg:"linear-gradient(160deg,#c65100,#993e00)",txt:"Malo",    sub:"Ventila el ambiente ahora"},
-  3:{bg:"linear-gradient(160deg,#c0102a,#8f0c20)",txt:"Crítico", sub:"Aire viciado — abre puertas y ventanas"},
+const NIVELES = {
+  0:{txt:"Bueno",    color:"var(--verde)",    sub:"El aire está limpio y bien ventilado"},
+  1:{txt:"Moderado", color:"var(--amarillo)", sub:"Aceptable, conviene ventilar pronto"},
+  2:{txt:"Malo",     color:"var(--naranja)",  sub:"Ventila el ambiente ahora"},
+  3:{txt:"Crítico",  color:"var(--rojo)",     sub:"Aire viciado — abre puertas y ventanas"},
 };
 const fmt = (v,d=0) => (v==null||isNaN(v)) ? "–" : Number(v).toFixed(d);
+
+// Geometría del arco: 270°, empieza en 135° (abajo-izquierda), cx 150 cy 130 r 105
+function setGauge(p){ // p en 0..1
+  document.getElementById("gprog").style.strokeDashoffset = 100 - p*100;
+  const th = (135 + 270*p) * Math.PI/180;
+  const k = document.getElementById("gknob");
+  k.setAttribute("cx", (150 + 105*Math.cos(th)).toFixed(2));
+  k.setAttribute("cy", (130 + 105*Math.sin(th)).toFixed(2));
+}
+
 async function tick(){
   try{
     const d = await (await fetch("/api/data",{cache:"no-store"})).json();
     if(d==null || d.co2==null) return noData();
-    const c = COLORS[d.nivel] ?? COLORS[0];
-    hero.style.background = c.bg;
-    estado.textContent = c.txt;  sub.textContent = c.sub;
-    co2.textContent = fmt(d.co2); voc.textContent = fmt(d.voc);
-    temp.textContent = fmt(d.temp,1); hum.textContent = fmt(d.hum,1);
+    const n = NIVELES[d.nivel] ?? NIVELES[0];
+    const est = document.getElementById("estado");
+    est.textContent = n.txt;
+    est.style.color = n.color;
+    document.getElementById("sub").textContent = n.sub;
+    document.getElementById("co2").textContent  = fmt(d.co2);
+    document.getElementById("co2b").textContent = fmt(d.co2);
+    document.getElementById("voc").textContent  = fmt(d.voc);
+    document.getElementById("temp").textContent = fmt(d.temp,1);
+    document.getElementById("hum").textContent  = fmt(d.hum,1);
+    // El arco refleja el CO2: 400 ppm (aire exterior) → 1600 ppm (crítico)
+    setGauge(Math.min(1, Math.max(0.04, (d.co2-400)/1200)));
     const s = Math.round((Date.now()-d.ts)/1000);
-    foot.textContent = "Actualizado hace " + (s<60? s+" s" : Math.round(s/60)+" min");
+    document.getElementById("foot").textContent =
+      "Actualizado hace " + (s<60 ? s+" s" : Math.round(s/60)+" min");
   }catch(e){ noData(); }
 }
 function noData(){
-  estado.textContent="Sin datos"; sub.textContent="El sensor no ha reportado aún";
-  foot.textContent="Reintentando…";
+  const est = document.getElementById("estado");
+  est.textContent = "Sin datos";
+  est.style.color = "var(--ink-mute)";
+  document.getElementById("sub").textContent = "El sensor no ha reportado aún";
+  document.getElementById("foot").textContent = "Reintentando…";
+  setGauge(0);
 }
-const $=id=>document.getElementById(id);
-["hero","estado","sub","co2","voc","temp","hum","foot"].forEach(k=>window[k]=$(k));
 tick(); setInterval(tick, 5000);
 </script>
 </body>
