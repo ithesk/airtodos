@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calidad del Aire</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  body {
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:#0b0d12; color:#fff; min-height:100vh;
+    display:flex; flex-direction:column; align-items:center;
+    padding:24px 16px calc(24px + env(safe-area-inset-bottom));
+  }
+  .wrap { width:100%; max-width:440px; }
+  .hero {
+    border-radius:28px; padding:40px 24px; text-align:center;
+    background:#1a2030; transition:background .8s ease; margin-bottom:16px;
+    box-shadow:0 20px 60px rgba(0,0,0,.45);
+  }
+  .estado { font-size:46px; font-weight:800; letter-spacing:-1.5px; }
+  .sub { font-size:15px; opacity:.9; margin-top:8px; font-weight:500; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .card {
+    background:#151922; border-radius:20px; padding:20px;
+    border:1px solid rgba(255,255,255,.06);
+  }
+  .label { font-size:12px; opacity:.55; font-weight:700; text-transform:uppercase; letter-spacing:.6px; }
+  .val { font-size:34px; font-weight:800; margin-top:8px; letter-spacing:-1px; }
+  .unit { font-size:16px; font-weight:600; opacity:.5; margin-left:3px; }
+  .foot { text-align:center; margin-top:22px; font-size:13px; opacity:.4; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero" id="hero">
+    <div class="estado" id="estado">Cargando…</div>
+    <div class="sub" id="sub">Conectando con el sensor</div>
+  </div>
+  <div class="grid">
+    <div class="card"><div class="label">CO₂</div><div class="val"><span id="co2">–</span><span class="unit">ppm</span></div></div>
+    <div class="card"><div class="label">VOC</div><div class="val"><span id="voc">–</span></div></div>
+    <div class="card"><div class="label">Temperatura</div><div class="val"><span id="temp">–</span><span class="unit">°C</span></div></div>
+    <div class="card"><div class="label">Humedad</div><div class="val"><span id="hum">–</span><span class="unit">%</span></div></div>
+  </div>
+  <div class="foot" id="foot">—</div>
+</div>
+<script>
+const COLORS = {
+  0:{bg:"linear-gradient(160deg,#0f7a3d,#0a5c2e)",txt:"Bueno",   sub:"El aire está limpio y bien ventilado"},
+  1:{bg:"linear-gradient(160deg,#b58900,#8a6800)",txt:"Moderado",sub:"Aceptable, conviene ventilar pronto"},
+  2:{bg:"linear-gradient(160deg,#c65100,#993e00)",txt:"Malo",    sub:"Ventila el ambiente ahora"},
+  3:{bg:"linear-gradient(160deg,#c0102a,#8f0c20)",txt:"Crítico", sub:"Aire viciado — abre puertas y ventanas"},
+};
+const fmt = (v,d=0) => (v==null||isNaN(v)) ? "–" : Number(v).toFixed(d);
+async function tick(){
+  try{
+    const d = await (await fetch("/api/data",{cache:"no-store"})).json();
+    if(d==null || d.co2==null) return noData();
+    const c = COLORS[d.nivel] ?? COLORS[0];
+    hero.style.background = c.bg;
+    estado.textContent = c.txt;  sub.textContent = c.sub;
+    co2.textContent = fmt(d.co2); voc.textContent = fmt(d.voc);
+    temp.textContent = fmt(d.temp,1); hum.textContent = fmt(d.hum,1);
+    const s = Math.round((Date.now()-d.ts)/1000);
+    foot.textContent = "Actualizado hace " + (s<60? s+" s" : Math.round(s/60)+" min");
+  }catch(e){ noData(); }
+}
+function noData(){
+  estado.textContent="Sin datos"; sub.textContent="El sensor no ha reportado aún";
+  foot.textContent="Reintentando…";
+}
+const $=id=>document.getElementById(id);
+["hero","estado","sub","co2","voc","temp","hum","foot"].forEach(k=>window[k]=$(k));
+tick(); setInterval(tick, 5000);
+</script>
+</body>
+</html>
