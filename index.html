@@ -67,14 +67,24 @@
   .r-sub { font-size:12.5px; font-weight:500; color:var(--card-ink-2); margin-top:3px; }
   .r-val { font-size:34px; font-weight:800; letter-spacing:-1px; white-space:nowrap; }
   .r-val .u { font-size:15px; font-weight:700; opacity:.55; margin-left:2px; letter-spacing:0; }
-  .r-bar {
-    margin-top:12px; height:8px; border-radius:4px;
-    background:rgba(20,20,23,.16); overflow:hidden;
+  .r-scale {
+    position:relative; margin:16px 2px 20px; height:8px; border-radius:4px;
+    background:rgba(20,20,23,.14);
   }
-  .r-fill {
-    height:100%; width:0%; border-radius:4px;
-    background:rgba(20,20,23,.85);
-    transition:width .9s cubic-bezier(.4,0,.2,1);
+  .r-zone {
+    position:absolute; top:0; height:100%; border-radius:4px;
+    background:rgba(20,20,23,.30);
+  }
+  .r-zone span {
+    position:absolute; top:13px; left:50%; transform:translateX(-50%);
+    font-size:10.5px; font-weight:700; letter-spacing:.5px; text-transform:uppercase;
+    color:var(--card-ink-2); white-space:nowrap;
+  }
+  .r-dot {
+    position:absolute; top:50%; left:2%; width:16px; height:16px; border-radius:50%;
+    background:var(--card-ink); border:3px solid rgba(255,255,255,.9);
+    transform:translate(-50%,-50%); box-shadow:0 1px 4px rgba(0,0,0,.25);
+    transition:left .9s cubic-bezier(.4,0,.2,1);
   }
 
   .foot { text-align:center; margin-top:26px; font-size:13px; color:var(--ink-mute); }
@@ -122,28 +132,28 @@
         <div><div class="r-label">CO₂</div><div class="r-sub">Dióxido de carbono</div></div>
         <div class="r-val"><span id="co2b">–</span><span class="u">ppm</span></div>
       </div>
-      <div class="r-bar"><div class="r-fill" id="bar-co2"></div></div>
+      <div class="r-scale"><div class="r-zone" style="left:0%;width:33.3%"><span>óptimo</span></div><div class="r-dot" id="dot-co2"></div></div>
     </div>
     <div class="row lila">
       <div class="r-top">
         <div><div class="r-label">VOC</div><div class="r-sub">Compuestos volátiles</div></div>
         <div class="r-val"><span id="voc">–</span></div>
       </div>
-      <div class="r-bar"><div class="r-fill" id="bar-voc"></div></div>
+      <div class="r-scale"><div class="r-zone" style="left:0%;width:30%"><span>óptimo</span></div><div class="r-dot" id="dot-voc"></div></div>
     </div>
     <div class="row verde">
       <div class="r-top">
         <div><div class="r-label">Temperatura</div><div class="r-sub">Ambiente interior</div></div>
         <div class="r-val"><span id="temp">–</span><span class="u">°C</span></div>
       </div>
-      <div class="r-bar"><div class="r-fill" id="bar-temp"></div></div>
+      <div class="r-scale"><div class="r-zone" style="left:33.3%;width:23.4%"><span>óptimo</span></div><div class="r-dot" id="dot-temp"></div></div>
     </div>
     <div class="row azul">
       <div class="r-top">
         <div><div class="r-label">Humedad</div><div class="r-sub">Relativa del aire</div></div>
         <div class="r-val"><span id="hum">–</span><span class="u">%</span></div>
       </div>
-      <div class="r-bar"><div class="r-fill" id="bar-hum"></div></div>
+      <div class="r-scale"><div class="r-zone" style="left:30%;width:35%"><span>óptimo</span></div><div class="r-dot" id="dot-hum"></div></div>
     </div>
   </div>
 
@@ -166,10 +176,10 @@ const RANGOS = {
   temp: [10, 40],     // °C
   hum:  [0, 100],     // %
 };
-function setBar(id, v, key){
+function setDot(id, v, key){
   const [min,max] = RANGOS[key];
-  const p = (v==null||isNaN(v)) ? 0 : Math.min(100, Math.max(2, (v-min)/(max-min)*100));
-  document.getElementById(id).style.width = p + "%";
+  const p = (v==null||isNaN(v)) ? 2 : Math.min(98, Math.max(2, (v-min)/(max-min)*100));
+  document.getElementById(id).style.left = p + "%";
 }
 
 // Geometría del arco: 270°, empieza en 135° (abajo-izquierda), cx 150 cy 130 r 105
@@ -195,10 +205,10 @@ async function tick(){
     document.getElementById("voc").textContent  = fmt(d.voc);
     document.getElementById("temp").textContent = fmt(d.temp,1);
     document.getElementById("hum").textContent  = fmt(d.hum,1);
-    setBar("bar-co2",  d.co2,  "co2");
-    setBar("bar-voc",  d.voc,  "voc");
-    setBar("bar-temp", d.temp, "temp");
-    setBar("bar-hum",  d.hum,  "hum");
+    setDot("dot-co2",  d.co2,  "co2");
+    setDot("dot-voc",  d.voc,  "voc");
+    setDot("dot-temp", d.temp, "temp");
+    setDot("dot-hum",  d.hum,  "hum");
     // El arco refleja el CO2: 400 ppm (aire exterior) → 1600 ppm (crítico)
     setGauge(Math.min(1, Math.max(0.04, (d.co2-400)/1200)));
     const s = Math.round((Date.now()-d.ts)/1000);
@@ -213,8 +223,8 @@ function noData(){
   document.getElementById("sub").textContent = "El sensor no ha reportado aún";
   document.getElementById("foot").textContent = "Reintentando…";
   setGauge(0);
-  ["bar-co2","bar-voc","bar-temp","bar-hum"].forEach(id =>
-    document.getElementById(id).style.width = "0%");
+  ["dot-co2","dot-voc","dot-temp","dot-hum"].forEach(id =>
+    document.getElementById(id).style.left = "2%");
 }
 tick(); setInterval(tick, 5000);
 </script>
