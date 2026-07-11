@@ -13,7 +13,9 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "method" });
 
   // Solo el ESP32 (que conoce PUSH_TOKEN) puede escribir.
-  if (req.headers["x-token"] !== process.env.PUSH_TOKEN) {
+  // Si PUSH_TOKEN no está configurado, se rechaza todo: sin esta guarda,
+  // header ausente (undefined) === env ausente (undefined) y cualquiera podría escribir.
+  if (!process.env.PUSH_TOKEN || req.headers["x-token"] !== process.env.PUSH_TOKEN) {
     return res.status(401).json({ error: "unauthorized" });
   }
 
