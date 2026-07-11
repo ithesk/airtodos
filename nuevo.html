@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nuevo sensor — Calidad del Aire</title>
+<meta name="theme-color" content="#0a0a0c">
+<style>
+  :root {
+    --page:#0a0a0c; --ink:#fff; --ink-2:#b9b9c3; --ink-mute:#6f6f7a;
+    --panel:#141417; --linea:rgba(255,255,255,.08);
+    --verde:#5fc79b; --azul:#6faaf5; --amarillo:#f2cf63;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--page); color:var(--ink-2); line-height:1.6;
+    max-width:640px; margin:0 auto; padding:40px 20px 60px;
+  }
+  h1 { color:var(--ink); font-size:26px; font-weight:800; letter-spacing:-.5px; }
+  h2 { color:var(--ink); font-size:16px; margin:28px 0 8px; }
+  p  { font-size:15px; }
+  .lead { margin-top:6px; }
+  button {
+    margin-top:22px; width:100%; padding:15px; border:0; border-radius:14px;
+    background:var(--verde); color:#0f0f12; font-size:16px; font-weight:800;
+    font-family:inherit; cursor:pointer;
+  }
+  button:disabled { opacity:.5; cursor:default; }
+  pre {
+    background:var(--panel); border:1px solid var(--linea); border-radius:14px;
+    padding:14px; overflow-x:auto; font-size:12.5px; line-height:1.5;
+    color:var(--ink); white-space:pre;
+  }
+  code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  .dato {
+    display:flex; justify-content:space-between; gap:12px; align-items:center;
+    background:var(--panel); border:1px solid var(--linea); border-radius:14px;
+    padding:12px 14px; margin-bottom:8px; font-size:14px;
+  }
+  .dato b { color:var(--ink-mute); font-weight:600; }
+  .dato code { color:var(--ink); word-break:break-all; text-align:right; }
+  .aviso {
+    border-left:3px solid var(--amarillo); padding:2px 0 2px 12px;
+    font-size:14px; margin-top:14px;
+  }
+  #salida { display:none; margin-top:26px; }
+  #error { display:none; color:#ef6a6a; margin-top:16px; font-size:14px; }
+  a { color:var(--azul); }
+</style>
+</head>
+<body>
+
+<h1>Conecta tu propio sensor 🍃</h1>
+<p class="lead">
+  Este panel funciona con cualquier sensor de calidad del aire que sepa hacer
+  una petición HTTP: un ESP32 con ESPHome, una Raspberry, Home Assistant, lo
+  que tengas. Crea aquí las credenciales de tu sensor y quedará con su propio
+  panel y su propia etiqueta NFC, independiente de los demás.
+</p>
+
+<button id="crear">Crear mi sensor</button>
+<div id="error"></div>
+
+<div id="salida">
+  <h2>Tus credenciales</h2>
+  <div class="dato"><b>ID del sensor</b><code id="v-id"></code></div>
+  <div class="dato"><b>Token de escritura</b><code id="v-token"></code></div>
+  <div class="dato"><b>URL de tu panel</b><code id="v-url"></code></div>
+
+  <div class="aviso">
+    Guarda el <b>token</b> ahora: no se vuelve a mostrar. Da permiso de
+    escritura sobre tu sensor, así que no lo compartas. El <b>ID</b> en cambio
+    es público — quien tenga tu URL verá tus lecturas.
+  </div>
+
+  <h2>1. Configura tu sensor</h2>
+  <p>Si usas ESPHome, agrega esto a tu YAML (ya lleva tu token):</p>
+  <pre><code id="v-yaml"></code></pre>
+  <p>Con cualquier otro sistema, basta con un POST cada 30 s:</p>
+  <pre><code id="v-curl"></code></pre>
+
+  <h2>2. Graba tu etiqueta NFC</h2>
+  <p>
+    Con una app como <b>NFC Tools</b>, escribe un registro de tipo <b>URL</b>
+    con tu URL de arriba. Al acercar un iPhone aparecerá el panel; en Android
+    abre la web igual.
+  </p>
+
+  <h2>3. Listo</h2>
+  <p>
+    Abre <a id="v-link" href="#">tu panel</a> — mostrará tus lecturas en cuanto
+    tu sensor haga el primer envío.
+  </p>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+$("crear").onclick = async () => {
+  const boton = $("crear");
+  boton.disabled = true;
+  boton.textContent = "Creando…";
+  $("error").style.display = "none";
+
+  try {
+    const r = await fetch("/api/register", { method: "POST" });
+    if (!r.ok) {
+      throw new Error(r.status === 429
+        ? "Has creado demasiados sensores hoy. Intenta mañana."
+        : "No se pudo crear el sensor. Intenta de nuevo.");
+    }
+    const s = await r.json();
+
+    $("v-id").textContent = s.id;
+    $("v-token").textContent = s.token;
+    $("v-url").textContent = s.url;
+    $("v-link").href = s.url;
+
+    $("v-yaml").textContent =
+`http_request:
+  useragent: airqualityc3
+  timeout: 10s
+  verify_ssl: false
+
+interval:
+  - interval: 30s
+    then:
+      - http_request.post:
+          url: "https://airtodos-phi.vercel.app/api/push"
+          request_headers:
+            Content-Type: application/json
+            x-token: "${s.token}"
+          body: !lambda |-
+            char buf[192];
+            snprintf(buf, sizeof(buf),
+              "{\\"co2\\":%.0f,\\"voc\\":%.0f,\\"temp\\":%.1f,\\"hum\\":%.1f,\\"nivel\\":%d}",
+              id(co2).state, id(voc_index).state,
+              id(temperatura).state, id(humedad).state, id(aq_level));
+            return std::string(buf);`;
+
+    $("v-curl").textContent =
+`curl -X POST https://airtodos-phi.vercel.app/api/push \\
+  -H "Content-Type: application/json" \\
+  -H "x-token: ${s.token}" \\
+  -d '{"co2":650,"voc":110,"temp":24.5,"hum":55,"nivel":0}'`;
+
+    boton.style.display = "none";
+    $("salida").style.display = "block";
+  } catch (e) {
+    boton.disabled = false;
+    boton.textContent = "Crear mi sensor";
+    $("error").textContent = e.message;
+    $("error").style.display = "block";
+  }
+};
+</script>
+</body>
+</html>

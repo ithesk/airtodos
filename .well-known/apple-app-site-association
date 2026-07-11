@@ -1,5 +1,13 @@
 {
   "appclips": {
     "apps": ["43R9TJSE6S.com.ithesk.airtodos.Clip"]
+  },
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["43R9TJSE6S.com.ithesk.airtodos"],
+        "components": [{ "/": "*" }]
+      }
+    ]
   }
 }
