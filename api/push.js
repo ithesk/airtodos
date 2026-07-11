@@ -20,14 +20,22 @@ export default async function handler(req, res) {
   }
 
   const b = req.body || {};
-  await redis.set("aire:last", {
+  const reading = {
     co2: b.co2,
     voc: b.voc,
     temp: b.temp,
     hum: b.hum,
     nivel: b.nivel,
     ts: Date.now(),
-  });
+  };
+
+  // "aire:last" = dato actual; "aire:hist" = ventana de 24 h (2880 lecturas
+  // a una cada 30 s), más nuevo primero. Pipeline = un solo round-trip a Upstash.
+  const p = redis.pipeline();
+  p.set("aire:last", reading);
+  p.lpush("aire:hist", reading);
+  p.ltrim("aire:hist", 0, 2879);
+  await p.exec();
 
   res.status(200).json({ ok: true });
 }
