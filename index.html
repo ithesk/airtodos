@@ -13,62 +13,53 @@
     --naranja:#f0955c; --rojo:#ef6a6a;
   }
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; }
   body {
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    background:var(--page); color:var(--ink); min-height:100vh;
+    background:var(--page); color:var(--ink); min-height:100dvh;
     display:flex; flex-direction:column; align-items:center;
-    padding:20px 20px calc(28px + env(safe-area-inset-bottom));
+    padding:10px 16px calc(12px + env(safe-area-inset-bottom));
   }
-  .wrap { width:100%; max-width:430px; }
+  .wrap { width:100%; max-width:430px; display:flex; flex-direction:column; flex:1; }
 
-  header { display:flex; align-items:center; justify-content:space-between; padding:6px 2px 2px; }
+  header { display:flex; align-items:center; justify-content:space-between; padding:2px 2px 0; }
   .logo { display:grid; grid-template-columns:6px 6px; gap:4px; }
   .logo i { width:6px; height:6px; border-radius:50%; background:var(--ink-2); }
   .logo i:nth-child(1) { background:var(--ink); }
-  .hname { font-size:15px; color:var(--ink-2); }
+  .hname { font-size:14px; color:var(--ink-2); }
   .hname b { color:var(--ink); font-weight:700; }
   .havatar {
-    width:34px; height:34px; border-radius:50%; background:#1c1c22;
-    display:flex; align-items:center; justify-content:center; font-size:16px;
+    width:30px; height:30px; border-radius:50%; background:#1c1c22;
+    display:flex; align-items:center; justify-content:center; font-size:14px;
     border:1px solid rgba(255,255,255,.08);
   }
 
-  h1 {
-    text-align:center; font-size:25px; font-weight:300; line-height:1.3;
-    margin-top:26px; letter-spacing:.2px;
-  }
+  h1 { text-align:center; font-size:19px; font-weight:300; margin-top:12px; letter-spacing:.2px; }
 
-  .gauge { position:relative; margin:6px auto 0; width:min(310px,100%); }
+  .gauge { position:relative; margin:2px auto 0; width:min(235px,64vw); }
   .gauge svg { width:100%; height:auto; display:block; }
   .g-progress { transition:stroke-dashoffset .9s cubic-bezier(.4,0,.2,1); }
   .g-knob { transition:cx .9s cubic-bezier(.4,0,.2,1), cy .9s cubic-bezier(.4,0,.2,1); }
   .g-center {
     position:absolute; inset:0; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; text-align:center; padding-top:14px;
+    align-items:center; justify-content:center; text-align:center; padding-top:10px;
   }
-  .estado { font-size:46px; font-weight:800; letter-spacing:-1.5px; color:var(--verde); transition:color .6s ease; }
-  .lectura { margin-top:10px; font-size:19px; font-weight:700; }
-  .lectura .u { font-size:13px; font-weight:600; color:var(--ink-mute); margin-left:4px; }
-  .sub { text-align:center; font-size:14px; color:var(--ink-2); margin-top:2px; min-height:20px; }
+  .estado { font-size:32px; font-weight:800; letter-spacing:-1px; color:var(--verde); transition:color .6s ease; }
+  .lectura { margin-top:6px; font-size:15px; font-weight:700; }
+  .lectura .u { font-size:11px; font-weight:600; color:var(--ink-mute); margin-left:3px; }
+  .sub { text-align:center; font-size:13px; color:var(--ink-2); margin-top:0; min-height:18px; }
 
-  h2 { text-align:center; font-size:21px; font-weight:300; margin:34px 0 16px; }
-
-  .rows { display:flex; flex-direction:column; gap:12px; }
-  .row {
-    border-radius:22px; padding:16px 22px 18px;
-    color:var(--card-ink);
-  }
+  .rows { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+  .row { border-radius:20px; padding:13px 15px 11px; color:var(--card-ink); }
   .row.amarillo { background:var(--amarillo); }
   .row.lila     { background:var(--lila); }
   .row.verde    { background:var(--verde); }
   .row.azul     { background:var(--azul); }
-  .r-top { display:flex; align-items:center; justify-content:space-between; }
-  .r-label { font-size:16px; font-weight:800; letter-spacing:.2px; }
-  .r-sub { font-size:12.5px; font-weight:500; color:var(--card-ink-2); margin-top:3px; }
-  .r-val { font-size:34px; font-weight:800; letter-spacing:-1px; white-space:nowrap; }
-  .r-val .u { font-size:15px; font-weight:700; opacity:.55; margin-left:2px; letter-spacing:0; }
+  .r-label { font-size:12.5px; font-weight:800; letter-spacing:.3px; text-transform:uppercase; color:var(--card-ink-2); }
+  .r-val { font-size:27px; font-weight:800; letter-spacing:-1px; white-space:nowrap; margin-top:2px; }
+  .r-val .u { font-size:13px; font-weight:700; opacity:.55; margin-left:2px; letter-spacing:0; }
   .r-scale {
-    position:relative; margin:16px 2px 20px; height:8px; border-radius:4px;
+    position:relative; margin:11px 1px 15px; height:7px; border-radius:4px;
     background:rgba(20,20,23,.14);
   }
   .r-zone {
@@ -76,18 +67,25 @@
     background:rgba(20,20,23,.30);
   }
   .r-zone span {
-    position:absolute; top:13px; left:50%; transform:translateX(-50%);
-    font-size:10.5px; font-weight:700; letter-spacing:.5px; text-transform:uppercase;
+    position:absolute; top:11px; left:50%; transform:translateX(-50%);
+    font-size:9px; font-weight:700; letter-spacing:.5px; text-transform:uppercase;
     color:var(--card-ink-2); white-space:nowrap;
   }
   .r-dot {
-    position:absolute; top:50%; left:2%; width:16px; height:16px; border-radius:50%;
-    background:var(--card-ink); border:3px solid rgba(255,255,255,.9);
+    position:absolute; top:50%; left:2%; width:14px; height:14px; border-radius:50%;
+    background:var(--card-ink); border:2.5px solid rgba(255,255,255,.9);
     transform:translate(-50%,-50%); box-shadow:0 1px 4px rgba(0,0,0,.25);
     transition:left .9s cubic-bezier(.4,0,.2,1);
   }
 
-  .foot { text-align:center; margin-top:26px; font-size:13px; color:var(--ink-mute); }
+  .foot { text-align:center; margin-top:auto; padding-top:10px; font-size:12px; color:var(--ink-mute); }
+
+  @media (max-height:660px) {
+    h1 { font-size:17px; margin-top:8px; }
+    .gauge { width:min(200px,58vw); }
+    .estado { font-size:27px; }
+    .r-val { font-size:23px; }
+  }
 </style>
 </head>
 <body>
@@ -98,7 +96,7 @@
     <div class="havatar">🏠</div>
   </header>
 
-  <h1>Estado del aire<br>en este momento</h1>
+  <h1>Estado del aire en este momento</h1>
 
   <div class="gauge">
     <svg viewBox="0 0 300 240" aria-hidden="true">
@@ -124,35 +122,25 @@
   </div>
   <div class="sub" id="sub">Conectando con el sensor</div>
 
-  <h2>Lecturas del sensor</h2>
-
   <div class="rows">
     <div class="row amarillo">
-      <div class="r-top">
-        <div><div class="r-label">CO₂</div><div class="r-sub">Dióxido de carbono</div></div>
-        <div class="r-val"><span id="co2b">–</span><span class="u">ppm</span></div>
-      </div>
+      <div class="r-label">CO₂</div>
+      <div class="r-val"><span id="co2b">–</span><span class="u">ppm</span></div>
       <div class="r-scale"><div class="r-zone" style="left:0%;width:33.3%"><span>óptimo</span></div><div class="r-dot" id="dot-co2"></div></div>
     </div>
     <div class="row lila">
-      <div class="r-top">
-        <div><div class="r-label">VOC</div><div class="r-sub">Compuestos volátiles</div></div>
-        <div class="r-val"><span id="voc">–</span></div>
-      </div>
+      <div class="r-label">VOC</div>
+      <div class="r-val"><span id="voc">–</span></div>
       <div class="r-scale"><div class="r-zone" style="left:0%;width:30%"><span>óptimo</span></div><div class="r-dot" id="dot-voc"></div></div>
     </div>
     <div class="row verde">
-      <div class="r-top">
-        <div><div class="r-label">Temperatura</div><div class="r-sub">Ambiente interior</div></div>
-        <div class="r-val"><span id="temp">–</span><span class="u">°C</span></div>
-      </div>
+      <div class="r-label">Temperatura</div>
+      <div class="r-val"><span id="temp">–</span><span class="u">°C</span></div>
       <div class="r-scale"><div class="r-zone" style="left:33.3%;width:23.4%"><span>óptimo</span></div><div class="r-dot" id="dot-temp"></div></div>
     </div>
     <div class="row azul">
-      <div class="r-top">
-        <div><div class="r-label">Humedad</div><div class="r-sub">Relativa del aire</div></div>
-        <div class="r-val"><span id="hum">–</span><span class="u">%</span></div>
-      </div>
+      <div class="r-label">Humedad</div>
+      <div class="r-val"><span id="hum">–</span><span class="u">%</span></div>
       <div class="r-scale"><div class="r-zone" style="left:30%;width:35%"><span>óptimo</span></div><div class="r-dot" id="dot-hum"></div></div>
     </div>
   </div>
@@ -169,7 +157,7 @@ const NIVELES = {
 };
 const fmt = (v,d=0) => (v==null||isNaN(v)) ? "–" : Number(v).toFixed(d);
 
-// Rango de cada barra: [min, max] → 0..100%
+// Rango de cada escala: [min, max] → 0..100%
 const RANGOS = {
   co2:  [400, 1600],  // ppm: aire exterior → crítico
   voc:  [0, 500],     // índice VOC de Sensirion
