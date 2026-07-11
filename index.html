@@ -55,17 +55,19 @@
   .lectura .u { font-size:11px; font-weight:600; color:var(--ink-mute); margin-left:3px; }
   .sub { text-align:center; font-size:13px; color:var(--ink-2); margin-top:0; min-height:18px; }
 
-  .rows { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
-  .row { border-radius:20px; padding:13px 15px 11px; color:var(--card-ink); }
+  .rows { display:flex; flex-direction:column; gap:9px; margin-top:12px; }
+  .row { border-radius:20px; padding:12px 18px 9px; color:var(--card-ink); }
   .row.amarillo { background:var(--amarillo); }
   .row.lila     { background:var(--lila); }
   .row.verde    { background:var(--verde); }
   .row.azul     { background:var(--azul); }
-  .r-label { font-size:12.5px; font-weight:800; letter-spacing:.3px; text-transform:uppercase; color:var(--card-ink-2); }
-  .r-val { font-size:27px; font-weight:800; letter-spacing:-1px; white-space:nowrap; margin-top:2px; }
+  .r-top { display:flex; align-items:center; justify-content:space-between; }
+  .r-label { font-size:15px; font-weight:800; letter-spacing:.2px; }
+  .r-sub { font-size:12px; font-weight:500; color:var(--card-ink-2); margin-top:2px; }
+  .r-val { font-size:27px; font-weight:800; letter-spacing:-1px; white-space:nowrap; }
   .r-val .u { font-size:13px; font-weight:700; opacity:.55; margin-left:2px; letter-spacing:0; }
   .r-scale {
-    position:relative; margin:11px 1px 15px; height:7px; border-radius:4px;
+    position:relative; margin:9px 1px 14px; height:7px; border-radius:4px;
     background:rgba(20,20,23,.14);
   }
   .r-zone {
@@ -86,11 +88,15 @@
 
   .foot { text-align:center; margin-top:auto; padding-top:10px; font-size:12px; color:var(--ink-mute); }
 
-  @media (max-height:660px) {
+  @media (max-height:720px) {
     h1 { font-size:17px; margin-top:8px; }
-    .gauge { width:min(200px,58vw); }
-    .estado { font-size:27px; }
+    .gauge { width:min(195px,56vw); }
+    .estado { font-size:26px; }
+    .lectura { margin-top:4px; font-size:13px; }
+    .r-sub { display:none; }
     .r-val { font-size:23px; }
+    .row { padding:10px 18px 7px; }
+    .r-scale { margin:7px 1px 13px; }
   }
 </style>
 </head>
@@ -130,23 +136,31 @@
 
   <div class="rows">
     <div class="row amarillo">
-      <div class="r-label">CO₂</div>
-      <div class="r-val"><span id="co2b">–</span><span class="u">ppm</span></div>
+      <div class="r-top">
+        <div><div class="r-label">CO₂</div><div class="r-sub">Dióxido de carbono</div></div>
+        <div class="r-val"><span id="co2b">–</span><span class="u">ppm</span></div>
+      </div>
       <div class="r-scale"><div class="r-zone" style="left:0%;width:33.3%"><span>óptimo</span></div><div class="r-dot" id="dot-co2"></div></div>
     </div>
     <div class="row lila">
-      <div class="r-label">VOC</div>
-      <div class="r-val"><span id="voc">–</span></div>
+      <div class="r-top">
+        <div><div class="r-label">VOC</div><div class="r-sub">Compuestos volátiles</div></div>
+        <div class="r-val"><span id="voc">–</span></div>
+      </div>
       <div class="r-scale"><div class="r-zone" style="left:0%;width:30%"><span>óptimo</span></div><div class="r-dot" id="dot-voc"></div></div>
     </div>
     <div class="row verde">
-      <div class="r-label">Temperatura</div>
-      <div class="r-val"><span id="temp">–</span><span class="u">°C</span></div>
+      <div class="r-top">
+        <div><div class="r-label">Temperatura</div><div class="r-sub">Ambiente interior</div></div>
+        <div class="r-val"><span id="temp">–</span><span class="u">°C</span></div>
+      </div>
       <div class="r-scale"><div class="r-zone" style="left:33.3%;width:23.4%"><span>óptimo</span></div><div class="r-dot" id="dot-temp"></div></div>
     </div>
     <div class="row azul">
-      <div class="r-label">Humedad</div>
-      <div class="r-val"><span id="hum">–</span><span class="u">%</span></div>
+      <div class="r-top">
+        <div><div class="r-label">Humedad</div><div class="r-sub">Relativa del aire</div></div>
+        <div class="r-val"><span id="hum">–</span><span class="u">%</span></div>
+      </div>
       <div class="r-scale"><div class="r-zone" style="left:30%;width:35%"><span>óptimo</span></div><div class="r-dot" id="dot-hum"></div></div>
     </div>
   </div>
