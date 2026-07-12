@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { redis, claveToken } from "./_sensor.js";
+import { redis, claveToken, claveMeta, limpiarNombre } from "./_sensor.js";
 
 // Alta pública de un sensor nuevo: devuelve su id y su token de escritura.
 // Es abierto a propósito (cualquiera puede armar su ESP32 y tener dashboard
@@ -21,12 +21,17 @@ export default async function handler(req, res) {
   // protege las lecturas, así que se genera largo y aleatorio.
   const id = randomBytes(6).toString("hex"); // 12 caracteres [a-f0-9]
   const token = randomBytes(24).toString("hex");
+  const nombre = limpiarNombre(req.body?.nombre);
 
-  await redis.set(claveToken(token), id);
+  const p = redis.pipeline();
+  p.set(claveToken(token), id);
+  p.set(claveMeta(id), { nombre });
+  await p.exec();
 
   res.status(200).json({
     id,
     token,
+    nombre,
     url: `https://airtodos-phi.vercel.app/?s=${id}`,
   });
 }

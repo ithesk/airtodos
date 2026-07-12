@@ -27,6 +27,12 @@
     font-family:inherit; cursor:pointer;
   }
   button:disabled { opacity:.5; cursor:default; }
+  input {
+    margin-top:26px; width:100%; padding:14px; border-radius:14px;
+    border:1px solid var(--linea); background:var(--panel); color:var(--ink);
+    font-size:16px; font-family:inherit;
+  }
+  input::placeholder { color:var(--ink-mute); }
   pre {
     background:var(--panel); border:1px solid var(--linea); border-radius:14px;
     padding:14px; overflow-x:auto; font-size:12.5px; line-height:1.5;
@@ -59,11 +65,13 @@
   panel y su propia etiqueta NFC, independiente de los demás.
 </p>
 
+<input id="nombre" type="text" maxlength="28" placeholder="Nombre del sensor — ej. Cocina, Sala, Cuarto">
 <button id="crear">Crear mi sensor</button>
 <div id="error"></div>
 
 <div id="salida">
   <h2>Tus credenciales</h2>
+  <div class="dato"><b>Nombre</b><code id="v-nombre"></code></div>
   <div class="dato"><b>ID del sensor</b><code id="v-id"></code></div>
   <div class="dato"><b>Token de escritura</b><code id="v-token"></code></div>
   <div class="dato"><b>URL de tu panel</b><code id="v-url"></code></div>
@@ -104,7 +112,11 @@ $("crear").onclick = async () => {
   $("error").style.display = "none";
 
   try {
-    const r = await fetch("/api/register", { method: "POST" });
+    const r = await fetch("/api/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nombre: $("nombre").value }),
+    });
     if (!r.ok) {
       throw new Error(r.status === 429
         ? "Has creado demasiados sensores hoy. Intenta mañana."
@@ -112,6 +124,7 @@ $("crear").onclick = async () => {
     }
     const s = await r.json();
 
+    $("v-nombre").textContent = s.nombre;
     $("v-id").textContent = s.id;
     $("v-token").textContent = s.token;
     $("v-url").textContent = s.url;

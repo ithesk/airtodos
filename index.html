@@ -104,7 +104,7 @@
 <div class="wrap">
   <header>
     <div class="logo"><i></i><i></i><i></i><i></i></div>
-    <div class="hname">Calidad del <b>Aire</b> 🍃</div>
+    <div class="hname"><b id="hname">Calidad del Aire</b> 🍃</div>
     <div class="havatar">🏠</div>
   </header>
 
@@ -208,6 +208,10 @@ const Q = SENSOR ? "?s=" + encodeURIComponent(SENSOR) : "";
 async function tick(){
   try{
     const d = await (await fetch("/api/data"+Q,{cache:"no-store"})).json();
+    // Con varios sensores (cocina, sala…) la cabecera dice cuál se está viendo.
+    // Se pone antes del corte por falta de datos: un sensor recién dado de alta
+    // aún no reporta, pero ya tiene nombre y conviene mostrarlo.
+    if(d && d.nombre) document.getElementById("hname").textContent = d.nombre;
     if(d==null || d.co2==null) return noData();
     const n = NIVELES[d.nivel] ?? NIVELES[0];
     const est = document.getElementById("estado");
