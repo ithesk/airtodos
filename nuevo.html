@@ -83,7 +83,13 @@
   </div>
 
   <h2>1. Configura tu sensor</h2>
-  <p>Si usas ESPHome, agrega esto a tu YAML (ya lleva tu token):</p>
+  <p>
+    Si usas ESPHome, añade tu token a <code>secrets.yaml</code>. Ese archivo es
+    uno solo para todo el servidor, así que dale a cada dispositivo <b>su propia
+    clave</b> — así conviven varios sensores en la misma instalación:
+  </p>
+  <pre><code id="v-secrets"></code></pre>
+  <p>Y en el YAML de <i>este</i> dispositivo:</p>
   <pre><code id="v-yaml"></code></pre>
   <p>Con cualquier otro sistema, basta con un POST cada 30 s:</p>
   <pre><code id="v-curl"></code></pre>
@@ -130,6 +136,19 @@ $("crear").onclick = async () => {
     $("v-url").textContent = s.url;
     $("v-link").href = s.url;
 
+    // Clave de secrets.yaml derivada del nombre: cada dispositivo la suya.
+    // NFD separa la tilde de la letra y el filtro siguiente se la lleva,
+    // así "Cuarto de papá" queda como push_token_cuarto_de_papa.
+    const clave = "push_token_" + (s.nombre
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "") || s.id);
+
+    $("v-secrets").textContent =
+`# secrets.yaml — una clave por dispositivo
+${clave}: "${s.token}"`;
+
     $("v-yaml").textContent =
 `http_request:
   useragent: airqualityc3
@@ -143,7 +162,7 @@ interval:
           url: "https://airtodos-phi.vercel.app/api/push"
           request_headers:
             Content-Type: application/json
-            x-token: "${s.token}"
+            x-token: !secret ${clave}
           body: !lambda |-
             char buf[192];
             snprintf(buf, sizeof(buf),
