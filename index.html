@@ -16,15 +16,15 @@
     --card-ink:#141417; --card-ink-2:rgba(20,20,23,.62);
     --track:#1e1e24;
     --amarillo:#f2cf63; --lila:#c9aef2; --verde:#5fc79b; --azul:#6faaf5;
+    --durazno:#f0a98c;
     --naranja:#f0955c; --rojo:#ef6a6a;
   }
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-  html, body { height:100%; }
   body {
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
     background:var(--page); color:var(--ink); min-height:100dvh;
     display:flex; flex-direction:column; align-items:center;
-    padding:calc(10px + env(safe-area-inset-top)) 16px calc(12px + env(safe-area-inset-bottom));
+    padding:calc(10px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
   }
   .wrap { width:100%; max-width:430px; display:flex; flex-direction:column; flex:1; }
 
@@ -53,18 +53,14 @@
   .estado { font-size:32px; font-weight:800; letter-spacing:-1px; color:var(--verde); transition:color .6s ease; }
   .lectura { margin-top:6px; font-size:15px; font-weight:700; }
   .lectura .u { font-size:11px; font-weight:600; color:var(--ink-mute); margin-left:3px; }
-  .sub { text-align:center; font-size:13px; color:var(--ink-2); margin-top:0; min-height:18px; }
 
-  /* Presión: píldora compacta, no una tarjeta. No tiene "zona óptima" —
-     una presión alta no es mejor aire que una baja, es meteorología. */
-  .pres { display:flex; justify-content:center; margin-top:6px; min-height:22px; }
-  .pres span {
-    display:none; align-items:center; gap:6px;
-    padding:3px 11px; border-radius:999px;
+  /* El consejo: lo único que hay que leer si solo lees una cosa. */
+  .consejo {
+    margin-top:10px; padding:13px 16px; border-radius:16px;
     background:var(--card-ink); border:1px solid rgba(255,255,255,.07);
-    font-size:11px; color:var(--ink-2);
+    text-align:center; font-size:15px; line-height:1.45; color:var(--ink);
+    min-height:52px; display:flex; align-items:center; justify-content:center;
   }
-  .pres b { color:var(--ink); font-weight:700; font-size:12px; }
 
   .rows { display:flex; flex-direction:column; gap:9px; margin-top:12px; }
   .row { border-radius:20px; padding:12px 18px 9px; color:var(--card-ink); }
@@ -72,13 +68,16 @@
   .row.lila     { background:var(--lila); }
   .row.verde    { background:var(--verde); }
   .row.azul     { background:var(--azul); }
-  .r-top { display:flex; align-items:center; justify-content:space-between; }
+  .row.durazno  { background:var(--durazno); }
+  .row.oculta   { display:none; }
+  .r-top { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
   .r-label { font-size:15px; font-weight:800; letter-spacing:.2px; }
-  .r-sub { font-size:12px; font-weight:500; color:var(--card-ink-2); margin-top:2px; }
+  /* Lo que significa el número, no cómo se llama la métrica. */
+  .r-sub { font-size:12.5px; font-weight:600; color:var(--card-ink-2); margin-top:3px; line-height:1.35; }
   .r-val { font-size:27px; font-weight:800; letter-spacing:-1px; white-space:nowrap; }
   .r-val .u { font-size:13px; font-weight:700; opacity:.55; margin-left:2px; letter-spacing:0; }
   .r-scale {
-    position:relative; margin:9px 1px 14px; height:7px; border-radius:4px;
+    position:relative; margin:10px 1px 14px; height:7px; border-radius:4px;
     background:rgba(20,20,23,.14);
   }
   .r-zone {
@@ -96,19 +95,11 @@
     transform:translate(-50%,-50%); box-shadow:0 1px 4px rgba(0,0,0,.25);
     transition:left .9s cubic-bezier(.4,0,.2,1);
   }
+  /* La presión no tiene "zona óptima": una presión alta no es mejor aire que
+     una baja. Su tarjeta muestra la tendencia, no una escala de bueno a malo. */
+  .r-scale.sin-zona .r-zone { display:none; }
 
-  .foot { text-align:center; margin-top:auto; padding-top:10px; font-size:12px; color:var(--ink-mute); }
-
-  @media (max-height:720px) {
-    h1 { font-size:17px; margin-top:8px; }
-    .gauge { width:min(195px,56vw); }
-    .estado { font-size:26px; }
-    .lectura { margin-top:4px; font-size:13px; }
-    .r-sub { display:none; }
-    .r-val { font-size:23px; }
-    .row { padding:10px 18px 7px; }
-    .r-scale { margin:7px 1px 13px; }
-  }
+  .foot { text-align:center; margin-top:auto; padding-top:14px; font-size:12px; color:var(--ink-mute); }
 </style>
 </head>
 <body>
@@ -143,37 +134,45 @@
       <div class="lectura"><span id="co2">–</span><span class="u">ppm CO₂</span></div>
     </div>
   </div>
-  <div class="sub" id="sub">Conectando con el sensor</div>
-  <div class="pres"><span id="pres-pill"><b id="pres">–</b> hPa<i id="pres-txt" style="font-style:normal;opacity:.6"></i></span></div>
+
+  <div class="consejo" id="consejo">Conectando con el sensor…</div>
 
   <div class="rows">
     <div class="row amarillo">
       <div class="r-top">
-        <div><div class="r-label">CO₂</div><div class="r-sub">Dióxido de carbono</div></div>
+        <div><div class="r-label">CO₂</div><div class="r-sub" id="s-co2">Dióxido de carbono</div></div>
         <div class="r-val"><span id="co2b">–</span><span class="u">ppm</span></div>
       </div>
       <div class="r-scale"><div class="r-zone" style="left:0%;width:33.3%"><span>óptimo</span></div><div class="r-dot" id="dot-co2"></div></div>
     </div>
     <div class="row lila">
       <div class="r-top">
-        <div><div class="r-label">VOC</div><div class="r-sub">Compuestos volátiles</div></div>
+        <div><div class="r-label">VOC</div><div class="r-sub" id="s-voc">Compuestos volátiles</div></div>
         <div class="r-val"><span id="voc">–</span></div>
       </div>
       <div class="r-scale"><div class="r-zone" style="left:0%;width:30%"><span>óptimo</span></div><div class="r-dot" id="dot-voc"></div></div>
     </div>
     <div class="row verde">
       <div class="r-top">
-        <div><div class="r-label">Temperatura</div><div class="r-sub">Ambiente interior</div></div>
+        <div><div class="r-label">Temperatura</div><div class="r-sub" id="s-temp">Ambiente interior</div></div>
         <div class="r-val"><span id="temp">–</span><span class="u">°C</span></div>
       </div>
       <div class="r-scale"><div class="r-zone" style="left:33.3%;width:23.4%"><span>óptimo</span></div><div class="r-dot" id="dot-temp"></div></div>
     </div>
     <div class="row azul">
       <div class="r-top">
-        <div><div class="r-label">Humedad</div><div class="r-sub">Relativa del aire</div></div>
+        <div><div class="r-label">Humedad</div><div class="r-sub" id="s-hum">Relativa del aire</div></div>
         <div class="r-val"><span id="hum">–</span><span class="u">%</span></div>
       </div>
       <div class="r-scale"><div class="r-zone" style="left:30%;width:35%"><span>óptimo</span></div><div class="r-dot" id="dot-hum"></div></div>
+    </div>
+    <!-- Solo aparece si el sensor trae BME280 -->
+    <div class="row durazno oculta" id="row-pres">
+      <div class="r-top">
+        <div><div class="r-label">Presión</div><div class="r-sub" id="s-pres">Presión atmosférica</div></div>
+        <div class="r-val"><span id="pres">–</span><span class="u">hPa</span></div>
+      </div>
+      <div class="r-scale sin-zona"><div class="r-zone"></div><div class="r-dot" id="dot-pres"></div></div>
     </div>
   </div>
 
@@ -182,11 +181,12 @@
 
 <script>
 const NIVELES = {
-  0:{txt:"Bueno",    color:"var(--verde)",    sub:"El aire está limpio y bien ventilado"},
-  1:{txt:"Moderado", color:"var(--amarillo)", sub:"Aceptable, conviene ventilar pronto"},
-  2:{txt:"Malo",     color:"var(--naranja)",  sub:"Ventila el ambiente ahora"},
-  3:{txt:"Crítico",  color:"var(--rojo)",     sub:"Aire viciado — abre puertas y ventanas"},
+  0:{txt:"Bueno",    color:"var(--verde)"},
+  1:{txt:"Moderado", color:"var(--amarillo)"},
+  2:{txt:"Malo",     color:"var(--naranja)"},
+  3:{txt:"Crítico",  color:"var(--rojo)"},
 };
+const $ = (id) => document.getElementById(id);
 const fmt = (v,d=0) => (v==null||isNaN(v)) ? "–" : Number(v).toFixed(d);
 
 // Rango de cada escala: [min, max] → 0..100%
@@ -195,18 +195,19 @@ const RANGOS = {
   voc:  [0, 500],     // índice VOC de Sensirion
   temp: [10, 40],     // °C
   hum:  [0, 100],     // %
+  pres: [990, 1030],  // hPa: rango habitual a nivel del mar
 };
 function setDot(id, v, key){
   const [min,max] = RANGOS[key];
   const p = (v==null||isNaN(v)) ? 2 : Math.min(98, Math.max(2, (v-min)/(max-min)*100));
-  document.getElementById(id).style.left = p + "%";
+  $(id).style.left = p + "%";
 }
 
 // Geometría del arco: 270°, empieza en 135° (abajo-izquierda), cx 150 cy 130 r 105
 function setGauge(p){ // p en 0..1
-  document.getElementById("gprog").style.strokeDashoffset = 100 - p*100;
+  $("gprog").style.strokeDashoffset = 100 - p*100;
   const th = (135 + 270*p) * Math.PI/180;
-  const k = document.getElementById("gknob");
+  const k = $("gknob");
   k.setAttribute("cx", (150 + 105*Math.cos(th)).toFixed(2));
   k.setAttribute("cy", (130 + 105*Math.sin(th)).toFixed(2));
 }
@@ -220,52 +221,63 @@ const Q = SENSOR ? "?s=" + encodeURIComponent(SENSOR) : "";
 async function tick(){
   try{
     const d = await (await fetch("/api/data"+Q,{cache:"no-store"})).json();
-    // Con varios sensores (cocina, sala…) la cabecera dice cuál se está viendo.
-    // Se pone antes del corte por falta de datos: un sensor recién dado de alta
-    // aún no reporta, pero ya tiene nombre y conviene mostrarlo.
-    if(d && d.nombre) document.getElementById("hname").textContent = d.nombre;
+
+    // El nombre se pinta antes del corte por falta de datos: un sensor recién
+    // dado de alta aún no reporta, pero ya tiene nombre.
+    if(d && d.nombre) $("hname").textContent = d.nombre;
     if(d==null || d.co2==null) return noData();
+
     const n = NIVELES[d.nivel] ?? NIVELES[0];
-    const est = document.getElementById("estado");
+    const est = $("estado");
     est.textContent = n.txt;
     est.style.color = n.color;
-    document.getElementById("sub").textContent = n.sub;
-    document.getElementById("co2").textContent  = fmt(d.co2);
-    document.getElementById("co2b").textContent = fmt(d.co2);
-    document.getElementById("voc").textContent  = fmt(d.voc);
-    document.getElementById("temp").textContent = fmt(d.temp,1);
-    document.getElementById("hum").textContent  = fmt(d.hum,1);
-    // Presión (BME280). Los sensores sin BME280 no la mandan: la píldora
-    // simplemente no aparece, en vez de enseñar un "–" sin sentido.
-    const pill = document.getElementById("pres-pill");
-    if(d.pres != null && !isNaN(d.pres)){
-      document.getElementById("pres").textContent = fmt(d.pres);
-      document.getElementById("pres-txt").textContent =
-        d.pres < 1000 ? " · presión baja" : d.pres > 1020 ? " · presión alta" : " · presión normal";
-      pill.style.display = "inline-flex";
-    } else {
-      pill.style.display = "none";
-    }
+
+    // El consejo y las descripciones vienen del backend (api/_guia.js): así se
+    // pueden mejorar las recomendaciones sin publicar una app nueva.
+    const g = d.guia || {};
+    $("consejo").textContent = g.consejo || "";
+
+    $("co2").textContent  = fmt(d.co2);
+    $("co2b").textContent = fmt(d.co2);
+    $("voc").textContent  = fmt(d.voc);
+    $("temp").textContent = fmt(d.temp,1);
+    $("hum").textContent  = fmt(d.hum,1);
+    if(g.co2)  $("s-co2").textContent  = g.co2;
+    if(g.voc)  $("s-voc").textContent  = g.voc;
+    if(g.temp) $("s-temp").textContent = g.temp;
+    if(g.hum)  $("s-hum").textContent  = g.hum;
     setDot("dot-co2",  d.co2,  "co2");
     setDot("dot-voc",  d.voc,  "voc");
     setDot("dot-temp", d.temp, "temp");
     setDot("dot-hum",  d.hum,  "hum");
+
+    // Presión: solo si el sensor tiene BME280. Los que no la miden no ven
+    // una tarjeta vacía, simplemente no la tienen.
+    if(d.pres != null && !isNaN(d.pres)){
+      $("pres").textContent = fmt(d.pres);
+      if(g.pres) $("s-pres").textContent = g.pres;
+      setDot("dot-pres", d.pres, "pres");
+      $("row-pres").classList.remove("oculta");
+    } else {
+      $("row-pres").classList.add("oculta");
+    }
+
     // El arco refleja el CO2: 400 ppm (aire exterior) → 1600 ppm (crítico)
     setGauge(Math.min(1, Math.max(0.04, (d.co2-400)/1200)));
     const s = Math.round((Date.now()-d.ts)/1000);
-    document.getElementById("foot").textContent =
+    $("foot").textContent =
       "Actualizado hace " + (s<60 ? s+" s" : Math.round(s/60)+" min");
   }catch(e){ noData(); }
 }
+
 function noData(){
-  const est = document.getElementById("estado");
+  const est = $("estado");
   est.textContent = "Sin datos";
   est.style.color = "var(--ink-mute)";
-  document.getElementById("sub").textContent = "El sensor no ha reportado aún";
-  document.getElementById("foot").textContent = "Reintentando…";
+  $("consejo").textContent = "El sensor no ha reportado aún.";
+  $("foot").textContent = "Reintentando…";
   setGauge(0);
-  ["dot-co2","dot-voc","dot-temp","dot-hum"].forEach(id =>
-    document.getElementById(id).style.left = "2%");
+  ["dot-co2","dot-voc","dot-temp","dot-hum","dot-pres"].forEach(id => $(id).style.left = "2%");
 }
 tick(); setInterval(tick, 5000);
 </script>
