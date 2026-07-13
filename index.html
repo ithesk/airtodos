@@ -55,6 +55,17 @@
   .lectura .u { font-size:11px; font-weight:600; color:var(--ink-mute); margin-left:3px; }
   .sub { text-align:center; font-size:13px; color:var(--ink-2); margin-top:0; min-height:18px; }
 
+  /* Presión: píldora compacta, no una tarjeta. No tiene "zona óptima" —
+     una presión alta no es mejor aire que una baja, es meteorología. */
+  .pres { display:flex; justify-content:center; margin-top:6px; min-height:22px; }
+  .pres span {
+    display:none; align-items:center; gap:6px;
+    padding:3px 11px; border-radius:999px;
+    background:var(--card-ink); border:1px solid rgba(255,255,255,.07);
+    font-size:11px; color:var(--ink-2);
+  }
+  .pres b { color:var(--ink); font-weight:700; font-size:12px; }
+
   .rows { display:flex; flex-direction:column; gap:9px; margin-top:12px; }
   .row { border-radius:20px; padding:12px 18px 9px; color:var(--card-ink); }
   .row.amarillo { background:var(--amarillo); }
@@ -133,6 +144,7 @@
     </div>
   </div>
   <div class="sub" id="sub">Conectando con el sensor</div>
+  <div class="pres"><span id="pres-pill"><b id="pres">–</b> hPa<i id="pres-txt" style="font-style:normal;opacity:.6"></i></span></div>
 
   <div class="rows">
     <div class="row amarillo">
@@ -223,6 +235,17 @@ async function tick(){
     document.getElementById("voc").textContent  = fmt(d.voc);
     document.getElementById("temp").textContent = fmt(d.temp,1);
     document.getElementById("hum").textContent  = fmt(d.hum,1);
+    // Presión (BME280). Los sensores sin BME280 no la mandan: la píldora
+    // simplemente no aparece, en vez de enseñar un "–" sin sentido.
+    const pill = document.getElementById("pres-pill");
+    if(d.pres != null && !isNaN(d.pres)){
+      document.getElementById("pres").textContent = fmt(d.pres);
+      document.getElementById("pres-txt").textContent =
+        d.pres < 1000 ? " · presión baja" : d.pres > 1020 ? " · presión alta" : " · presión normal";
+      pill.style.display = "inline-flex";
+    } else {
+      pill.style.display = "none";
+    }
     setDot("dot-co2",  d.co2,  "co2");
     setDot("dot-voc",  d.voc,  "voc");
     setDot("dot-temp", d.temp, "temp");

@@ -17,6 +17,15 @@ async function sensorDelToken(token) {
   return await redis.get(claveToken(token));
 }
 
+// El panel espera números. Sin esto, un firmware con un bug (o un push a mano)
+// podría guardar "NaN" o una cadena, y el App Clip fallaría al decodificar el
+// JSON entero — no solo ese campo.
+function num(v) {
+  if (v === null || v === undefined || v === "") return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "method" });
 
@@ -25,11 +34,12 @@ export default async function handler(req, res) {
 
   const b = req.body || {};
   const lectura = {
-    co2: b.co2,
-    voc: b.voc,
-    temp: b.temp,
-    hum: b.hum,
-    nivel: b.nivel,
+    co2: num(b.co2),
+    voc: num(b.voc),
+    temp: num(b.temp),
+    hum: num(b.hum),
+    pres: num(b.pres), // presión barométrica en hPa (BME280); null si el sensor no la trae
+    nivel: num(b.nivel),
     ts: Date.now(),
   };
 
